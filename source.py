@@ -25,6 +25,8 @@ import time
 import urllib2
 from xml.etree import ElementTree
 import buggalo
+from BeautifulSoup import BeautifulSoup
+import urllib2
 
 from strings import *
 
@@ -841,6 +843,29 @@ class YouSeeTvSource(Source):
                 if not progress_callback(100.0 / len(channels) * idx):
                     raise SourceUpdateCanceledException()
 
+        # Hack to add KVF to the yousee channel list
+        base_kvf_url = 'http://kvf.fo/skra/sjonvarp?date='
+        date_url = self.date.strftime("%Y-%m-%d")
+        source = urllib2.urlopen(base_kvf_url + date_url)
+        # Turn the saved source into a BeautifulSoup object
+        soup = BeautifulSoup(source, convertEntities=BeautifulSoup.HTML_ENTITIES)
+        c = Channel(id='KVF', title='KVF', streamUrl='http://80.77.128.59/fo/videohigher/playlist.m3u8')
+        yield c
+        for item in soup.findAll('div', 'views-row'):
+            start = item.find('span', 'views-field-start').text
+            stop = item.find('span', 'views-field-stop').text
+            title = item.find('div', 'views-field-title').text
+            long_desc = item.find('div', 'views-field-long').text
+            p = Program(
+                c,
+                title,
+                datetime.datetime(self.date.year, self.date.month, self.date.day, int(start.split(':')[0]), int(start.split(':')[1])),
+                datetime.datetime(self.date.year, self.date.month, self.date.day, int(stop.split(':')[0]), int(stop.split(':')[1])),
+                long_desc,
+                'http://kvf.fo/sites/all/themes/kvf_minimal/images/logo-kvf.png',
+                'http://kvf.fo/sites/all/themes/kvf_minimal/images/logo-kvf.png'
+            )
+            yield p
 
 class XMLTVSource(Source):
     KEY = 'xmltv'
