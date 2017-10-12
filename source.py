@@ -850,7 +850,7 @@ class YouSeeTvSource(Source):
         source = urllib2.urlopen(base_kvf_url + date_url)
         # Turn the saved source into a BeautifulSoup object
         soup = BeautifulSoup(source, convertEntities=BeautifulSoup.HTML_ENTITIES)
-        c = Channel(id='KVF', title='KVF', streamUrl='http://80.77.128.59/fo/videohigher/playlist.m3u8')
+        c = Channel(id='KVF', title='KVF', streamUrl='http://217.172.83.187/uttanlands/video/playlist.m3u8')
         yield c
         for item in soup.findAll('div', 'views-row'):
             start = item.find('span', 'views-field-start').text
