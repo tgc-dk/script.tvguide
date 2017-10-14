@@ -845,26 +845,38 @@ class YouSeeTvSource(Source):
                     raise SourceUpdateCanceledException()
 
         # Hack to add KVF to the yousee channel list
-        base_kvf_url = 'http://kvf.fo/skra/sjonvarp?date='
+        base_kvf_url = 'http://kvf.fo/nskra/sv?date='
         date_url = self.date.strftime("%Y-%m-%d")
         source = urllib2.urlopen(base_kvf_url + date_url)
         # Turn the saved source into a BeautifulSoup object
+        delta = datetime.timedelta(hours=1)
         soup = BeautifulSoup(source, convertEntities=BeautifulSoup.HTML_ENTITIES)
         c = Channel(id='KVF', title='KVF', streamUrl='http://217.172.83.187/uttanlands/video/playlist.m3u8')
         yield c
         for item in soup.findAll('div', 'views-row'):
-            start = item.find('span', 'views-field-start').text
-            stop = item.find('span', 'views-field-stop').text
-            title = item.find('div', 'views-field-title').text
-            long_desc = item.find('div', 'views-field-long').text
+            try:
+                times = item.find('div', 's-time').text.split('-')
+                start = times[0].strip()
+                stop = times[1].strip()
+                title = item.find('div', 's-heiti').text
+            except AttributeError:
+                continue
+            try:
+                long_desc = item.find('div', 's-subtitle').text
+            except AttributeError:
+                long_desc = ''
+            try:
+                long_desc += item.find('div', 's-text').text
+            except AttributeError:
+                pass
             p = Program(
                 c,
                 title,
-                datetime.datetime(self.date.year, self.date.month, self.date.day, int(start.split(':')[0]), int(start.split(':')[1])),
-                datetime.datetime(self.date.year, self.date.month, self.date.day, int(stop.split(':')[0]), int(stop.split(':')[1])),
+                datetime.datetime(self.date.year, self.date.month, self.date.day, int(start.split(':')[0]), int(start.split(':')[1])) + delta,
+                datetime.datetime(self.date.year, self.date.month, self.date.day, int(stop.split(':')[0]), int(stop.split(':')[1])) + delta,
                 long_desc,
-                'http://kvf.fo/sites/all/themes/kvf_minimal/images/logo-kvf.png',
-                'http://kvf.fo/sites/all/themes/kvf_minimal/images/logo-kvf.png'
+                'https://yt3.ggpht.com/-gneV5YOUXSQ/AAAAAAAAAAI/AAAAAAAAAAA/nlKAoT3RPro/s900-c-k-no-mo-rj-c0xffffff/photo.jpg',
+                'http://kvf.fo/sites/all/themes/felags/images/jw-load_end.png',
             )
             yield p
 
