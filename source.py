@@ -851,7 +851,7 @@ class YouSeeTvSource(Source):
         # Turn the saved source into a BeautifulSoup object
         delta = datetime.timedelta(hours=1)
         soup = BeautifulSoup(source, convertEntities=BeautifulSoup.HTML_ENTITIES)
-        c = Channel(id='KVF', title='KVF', streamUrl='http://217.172.83.187/uttanlands/video/playlist.m3u8')
+        c = Channel(id='KVF', title='KVF', streamUrl='https://w1.kringvarp.fo/uttanlands/_definst_/smil:uttanlands.smil/playlist.m3u8')
         yield c
         for item in soup.findAll('div', 'views-row'):
             try:
